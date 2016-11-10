@@ -24,3 +24,11 @@
     (is (some #(partitions-equal? % [#{:B} #{:A :C :D}]) p3))
     (is (some #(partitions-equal? % [#{:C} #{:A :B :D}]) p3))
     (is (some #(partitions-equal? % [#{:D} #{:A :B :C}]) p3))))
+
+(deftest test-numeric-partitions
+  (let [eq? (fn [a b]
+              (->> (map (fn [x y] (Math/abs (- x y))) a b)
+                   (every? #(< % 1E-6))))]
+    (is (eq? (numeric-partitions (range 1)) [0.5]))
+    (is (eq? (numeric-partitions (range 4)) [0.5 1.5 2.5]))
+    (is (eq? (numeric-partitions (range 5)) [0.5 1.5 2.5 3.5]))))

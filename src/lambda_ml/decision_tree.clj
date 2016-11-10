@@ -22,3 +22,12 @@
                       [(conj s2 (first vals)) s1]))
               [partition]
               (binary-partitions (rest vals))))))
+
+(defn numeric-partitions
+  [vals]
+  (loop [partitions []
+         v vals]
+    (if (< (count v) 2)
+      partitions
+      (recur (conj partitions (/ (+ (first v) (second v)) 2))
+             (rest v)))))
