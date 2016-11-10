@@ -55,3 +55,21 @@
     (is (= (count (splitters data 1)) 3))
     (is (= (count (splitters data 2)) 1))
     (is (= (count (splitters data 3)) 1))))
+
+(deftest test-numeric-splitters
+  (let [data [[64 177]
+              [65 255]
+              [85 125]
+              [80 60]
+              [72 56]
+              [75 120]
+              [75 100]
+              [68 220]
+              [71 90]
+              [83 95]
+              [69 52]
+              [70 70]
+              [72 85]
+              [81 75]]]
+    (is (= (count (splitters data 0)) 11))
+    (is (= (count (splitters data 1)) 13))))

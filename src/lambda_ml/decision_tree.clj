@@ -41,14 +41,16 @@
   subtree, or false if an example belongs in the right subtree, based on the
   splitting criterion."
   [x i]
-  (let [sample (first (map #(nth % i) x))]
-    (cond (number? sample) nil ;; TODO: generate splitters for numeric features
-          (string? sample) (->> (map #(nth % i) x)
-                                (distinct)
-                                (categorical-partitions)
-                                (map (fn [[s1 s2]]
-                                       (with-meta
-                                         (fn [x] (contains? s1 (nth x i)))
-                                         {:decision [s1 s2]}))))
+  (let [domain (distinct (map #(nth % i) x))]
+    (cond (number? (first domain)) (->> (numeric-partitions domain)
+                                        (map (fn [s]
+                                               (with-meta
+                                                 (fn [x] (<= (nth x i) s))
+                                                 {:decision (float s)}))))
+          (string? (first domain)) (->> (categorical-partitions domain)
+                                        (map (fn [[s1 s2]]
+                                               (with-meta
+                                                 (fn [x] (contains? s1 (nth x i)))
+                                                 {:decision [s1 s2]}))))
           :else (throw (IllegalStateException. "Invalid feature type")))))
 
