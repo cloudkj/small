@@ -7,10 +7,10 @@
   (is (< (Math/abs (- (gini-impurity [:a :b :b :b :b :b]) 0.277778)) 1E-6))
   (is (< (Math/abs (- (gini-impurity [:a :a :a :b :b :b]) 0.5)) 1E-6)))
 
-(deftest test-binary-partitions
-  (let [p1 (binary-partitions [:high :normal])
-        p2 (binary-partitions [:sunny :overcast :rain])
-        p3 (binary-partitions [:A :B :C :D])
+(deftest test-categorical-partitions
+  (let [p1 (categorical-partitions [:high :normal])
+        p2 (categorical-partitions [:sunny :overcast :rain])
+        p3 (categorical-partitions [:A :B :C :D])
         partitions-equal? (fn [p1 p2]
                             (or (= p1 p2)
                                 (= p1 (reverse p2))))]
@@ -31,4 +31,27 @@
                    (every? #(< % 1E-6))))]
     (is (eq? (numeric-partitions (range 1)) [0.5]))
     (is (eq? (numeric-partitions (range 4)) [0.5 1.5 2.5]))
-    (is (eq? (numeric-partitions (range 5)) [0.5 1.5 2.5 3.5]))))
+    (is (eq? (numeric-partitions (range 5)) [0.5 1.5 2.5 3.5]))
+    (is (eq? (numeric-partitions [1 0]) [0.5]))
+    (is (eq? (numeric-partitions [2 1 0 3]) [0.5 1.5 2.5]))
+    (is (eq? (numeric-partitions [3 4 1 2 0]) [0.5 1.5 2.5 3.5]))))
+
+(deftest test-categorical-splitters
+  (let [data [["Sunny" "Hot" "High" "Weak" "No"]
+              ["Sunny" "Hot" "High" "Strong" "No"]
+              ["Overcast" "Hot" "High" "Weak" "Yes"]
+              ["Rain" "Mild" "High" "Weak" "Yes"]
+              ["Rain" "Cool" "Normal" "Weak" "Yes"]
+              ["Rain" "Cool" "Normal" "Strong" "No"]
+              ["Overcast" "Cool" "Normal" "Strong" "Yes"]
+              ["Sunny" "Mild" "High" "Weak" "No"]
+              ["Sunny" "Cool" "Normal" "Weak" "Yes"]
+              ["Rain" "Mild" "Normal" "Weak" "Yes"]
+              ["Sunny" "Mild" "Normal" "Strong" "Yes"]
+              ["Overcast" "Mild" "High" "Strong" "Yes"]
+              ["Overcast" "Hot" "Normal" "Weak" "Yes"]
+              ["Rain" "Mild" "High" "Strong" "No"]]]
+    (is (= (count (splitters data 0)) 3))
+    (is (= (count (splitters data 1)) 3))
+    (is (= (count (splitters data 2)) 1))
+    (is (= (count (splitters data 3)) 1))))
