@@ -3,7 +3,6 @@
             [clojure.set :refer :all]
             [lambda-ml.neighborhood :refer :all]
             [lambda-ml.distance :as d]
-            [lambda-ml.data.kd-tree :as kd]
             [lambda-ml.data.priority-queue :as pq]))
 
 (deftest test-knn

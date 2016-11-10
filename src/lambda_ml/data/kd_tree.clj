@@ -1,4 +1,5 @@
-(ns lambda-ml.data.kd-tree)
+(ns lambda-ml.data.kd-tree
+  (:require [lambda-ml.data.binary-tree :as bt]))
 
 ;; K-d tree
 
@@ -17,27 +18,6 @@
      (let [dim (fn [node] (nth (f node) (mod depth dims)))
            sorted (sort-by dim nodes)
            median (quot (count sorted) 2)]
-       (vector (nth sorted median)
-               (make-tree dims (take median sorted) f (inc depth))
-               (make-tree dims (drop (+ median 1) sorted) f (inc depth)))))))
-
-(defn get-value
-  [tree]
-  (nth tree 0))
-
-(defn get-left
-  [tree]
-  (nth tree 1))
-
-(defn get-right
-  [tree]
-  (nth tree 2))
-
-(defn get-path
-  [tree paths]
-  (->> paths
-       (map (fn [path]
-              (cond (= path :left)  1
-                    (= path :right) 2
-                    :else (throw (IllegalArgumentException. "Invalid tree path")))))
-       (get-in tree)))
+       (bt/make-tree (nth sorted median)
+                     (make-tree dims (take median sorted) f (inc depth))
+                     (make-tree dims (drop (+ median 1) sorted) f (inc depth)))))))

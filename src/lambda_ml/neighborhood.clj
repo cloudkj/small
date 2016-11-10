@@ -1,5 +1,6 @@
 (ns lambda-ml.neighborhood
-  (:require [lambda-ml.data.kd-tree :as kd]
+  (:require [lambda-ml.data.binary-tree :as bt]
+            [lambda-ml.data.kd-tree :as kd]
             [lambda-ml.data.priority-queue :as pq]))
 
 ;; K-nearest neighbors
@@ -22,7 +23,7 @@
       ([k query tree depth cand]
        (if (nil? tree)
          cand
-         (let [[node left right] ((juxt kd/get-value kd/get-left kd/get-right) tree)
+         (let [[node left right] ((juxt bt/get-value bt/get-left bt/get-right) tree)
                dim (mod depth dims)
                ;; Determine near and far branches
                [near far] (if (<= (nth (g query) dim) (nth (g node) dim)) [left right] [right left])
@@ -52,7 +53,7 @@
       ([dist query tree depth cand]
        (if (nil? tree)
          cand
-         (let [[node left right] ((juxt kd/get-value kd/get-left kd/get-right) tree)
+         (let [[node left right] ((juxt bt/get-value bt/get-left bt/get-right) tree)
                dim (mod depth dims)
                [near far] (if (<= (nth query dim) (nth node dim)) [left right] [right left])]
            (cond->> cand
