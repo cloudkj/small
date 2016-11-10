@@ -7,6 +7,9 @@
   (is (< (Math/abs (- (gini-impurity [:a :b :b :b :b :b]) 0.277778)) 1E-6))
   (is (< (Math/abs (- (gini-impurity [:a :a :a :b :b :b]) 0.5)) 1E-6)))
 
+(deftest test-weighted-cost
+  (is (< (Math/abs (- (weighted-cost [:a :a :a :b :b :b] [:a :b :b :b :b :b] gini-impurity) 0.388889)) 1E-6)))
+
 (deftest test-categorical-partitions
   (let [p1 (categorical-partitions [:high :normal])
         p2 (categorical-partitions [:sunny :overcast :rain])
@@ -73,3 +76,23 @@
               [81 75]]]
     (is (= (count (splitters data 0)) 11))
     (is (= (count (splitters data 1)) 13))))
+
+(deftest test-best-splitter
+  (let [data [["Sunny" "Hot" "High" "Weak" "No"]
+              ["Sunny" "Hot" "High" "Strong" "No"]
+              ["Overcast" "Hot" "High" "Weak" "Yes"]
+              ["Rain" "Mild" "High" "Weak" "Yes"]
+              ["Rain" "Cool" "Normal" "Weak" "Yes"]
+              ["Rain" "Cool" "Normal" "Strong" "No"]
+              ["Overcast" "Cool" "Normal" "Strong" "Yes"]
+              ["Sunny" "Mild" "High" "Weak" "No"]
+              ["Sunny" "Cool" "Normal" "Weak" "Yes"]
+              ["Rain" "Mild" "Normal" "Weak" "Yes"]
+              ["Sunny" "Mild" "Normal" "Strong" "Yes"]
+              ["Overcast" "Mild" "High" "Strong" "Yes"]
+              ["Overcast" "Hot" "Normal" "Weak" "Yes"]
+              ["Rain" "Mild" "High" "Strong" "No"]]
+        splitter (best-splitter (map butlast data) (map last data) gini-impurity)
+        [left right] (vals (group-by splitter data))]
+    (is (or (and (= (count left) 10) (= (count right) 4))
+            (and (= (count left) 4) (= (count right) 10))))))
