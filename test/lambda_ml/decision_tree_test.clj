@@ -77,7 +77,7 @@
     (is (= (count (splitters data 0)) 11))
     (is (= (count (splitters data 1)) 13))))
 
-(deftest test-best-splitter
+(deftest test-best-splitter-categorical
   (let [data [["Sunny" "Hot" "High" "Weak" "No"]
               ["Sunny" "Hot" "High" "Strong" "No"]
               ["Overcast" "Hot" "High" "Weak" "Yes"]
@@ -92,7 +92,7 @@
               ["Overcast" "Mild" "High" "Strong" "Yes"]
               ["Overcast" "Hot" "Normal" "Weak" "Yes"]
               ["Rain" "Mild" "High" "Strong" "No"]]
-        splitter (best-splitter (map butlast data) (map last data) gini-impurity)
+        splitter (best-splitter gini-impurity (map butlast data) (map last data))
         [left right] (vals (group-by splitter data))]
     (is (or (and (= (count left) 10) (= (count right) 4))
             (and (= (count left) 4) (= (count right) 10))))))

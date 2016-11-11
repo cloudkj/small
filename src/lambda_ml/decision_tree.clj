@@ -36,14 +36,16 @@
 (defn numeric-partitions
   "Given a seq of k distinct numeric values, returns k-1 possible binary
   partitions of the values by taking the average of consecutive elements in the
-  sorted seq of values."
+  sorted seq of values. Returns the same seq when k = 1."
   [vals]
-  (loop [partitions []
-         v (sort vals)]
-    (if (< (count v) 2)
-      partitions
-      (recur (conj partitions (/ (+ (first v) (second v)) 2))
-             (rest v)))))
+  (if (= (count vals) 1)
+    vals
+    (loop [partitions []
+           v (sort vals)]
+      (if (= (count v) 1)
+        partitions
+        (recur (conj partitions (/ (+ (first v) (second v)) 2))
+               (rest v))))))
 
 (defn splitters
   "Returns a seq of all possible splitters for feature i. A splitter is a
@@ -66,7 +68,7 @@
 
 (defn best-splitter
   "Returns the splitter for the given data that minimizes cost function f."
-  [x y f]
+  [f x y]
   (->> (for [i (range (count (first x)))]
          ;; Find best splitter for feature i
          (->> (splitters x i)
@@ -74,9 +76,25 @@
                      (let [data (map #(conj (vec %1) %2) x y)
                            [left right] (vals (group-by splitter data))
                            cost (weighted-cost (map last left) (map last right) f)]
-                       ;; Add cost metadata to splitter
-                       [(vary-meta splitter merge {:cost cost}) cost])))
+                       ;; Add metadata to splitter
+                       [(vary-meta splitter merge {:cost cost :feature i}) cost])))
               (apply min-key second)))
        ;; Find best splitter amongst all features
+       ;; TODO: arbitrarily break ties by choosing feature with lower index
        (apply min-key second)
        (first)))
+
+(defn decision-tree-fit
+  ([f data]
+   (decision-tree-fit f (map butlast data) (map last data)))
+  ([f x y]
+   (if (apply = y)
+     (bt/make-tree (first y))
+     (let [splitter (best-splitter f x y)
+           data  (map #(conj (vec %1) %2) x y)
+           split (group-by splitter data)
+           left  (get split true)
+           right (get split false)]
+       (bt/make-tree splitter
+                     (decision-tree-fit f left)
+                     (decision-tree-fit f right))))))
