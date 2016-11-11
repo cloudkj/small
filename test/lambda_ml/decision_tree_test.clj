@@ -11,15 +11,18 @@
   (is (< (Math/abs (- (weighted-cost [:a :a :a :b :b :b] [:a :b :b :b :b :b] gini-impurity) 0.388889)) 1E-6)))
 
 (deftest test-categorical-partitions
-  (let [p1 (categorical-partitions [:high :normal])
+  (let [p0 (categorical-partitions [:foo])
+        p1 (categorical-partitions [:high :normal])
         p2 (categorical-partitions [:sunny :overcast :rain])
         p3 (categorical-partitions [:A :B :C :D])
         partitions-equal? (fn [p1 p2]
                             (or (= p1 p2)
                                 (= p1 (reverse p2))))]
+    (is (= (count p0) 1))
     (is (= (count p1) 1))
     (is (= (count p2) 3))
     (is (= (count p3) 7))
+    (is (some #(partitions-equal? % [#{:foo} #{}]) p0))
     (is (some #(partitions-equal? % [#{:A} #{:B :C :D}]) p3))
     (is (some #(partitions-equal? % [#{:A :B} #{:C :D}]) p3))
     (is (some #(partitions-equal? % [#{:A :C} #{:B :D}]) p3))
@@ -32,7 +35,8 @@
   (let [eq? (fn [a b]
               (->> (map (fn [x y] (Math/abs (- x y))) a b)
                    (every? #(< % 1E-6))))]
-    (is (eq? (numeric-partitions (range 1)) [0.5]))
+    (is (= (numeric-partitions [42]) [42]))
+    (is (eq? (numeric-partitions (range 1)) [0]))
     (is (eq? (numeric-partitions (range 4)) [0.5 1.5 2.5]))
     (is (eq? (numeric-partitions (range 5)) [0.5 1.5 2.5 3.5]))
     (is (eq? (numeric-partitions [1 0]) [0.5]))

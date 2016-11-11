@@ -20,7 +20,7 @@
 
 (defn categorical-partitions
   "Given a seq of k distinct values, returns the 2^{k-1}-1 possible binary
-  partitions of the values into sets. Assumes k > 1."
+  partitions of the values into sets. Returns a trivial partition when k = 1."
   [vals]
   (let [partition [(hash-set (first vals))
                    (set (rest vals))]]
