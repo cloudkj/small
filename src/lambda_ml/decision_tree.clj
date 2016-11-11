@@ -77,24 +77,56 @@
                            [left right] (vals (group-by splitter data))
                            cost (weighted-cost (map last left) (map last right) f)]
                        ;; Add metadata to splitter
-                       [(vary-meta splitter merge {:cost cost :feature i}) cost])))
+                       [(vary-meta splitter merge {:cost cost :feature i}) cost i])))
               (apply min-key second)))
        ;; Find best splitter amongst all features
-       ;; TODO: arbitrarily break ties by choosing feature with lower index
-       (apply min-key second)
+       (reduce (fn [a b]
+                 (let [[_ c1 i1] a [_ c2 i2] b]
+                   (cond (< c1 c2) a
+                         ;; To match the CART algorithm, break ties in cost by
+                         ;; choosing splitter for feature with lower index
+                         (= c1 c2) (if (< i1 i2) a b)
+                         :else     b))))
        (first)))
 
 (defn decision-tree-fit
-  ([f data]
-   (decision-tree-fit f (map butlast data) (map last data)))
-  ([f x y]
-   (if (apply = y)
-     (bt/make-tree (first y))
-     (let [splitter (best-splitter f x y)
-           data  (map #(conj (vec %1) %2) x y)
-           split (group-by splitter data)
-           left  (get split true)
-           right (get split false)]
-       (bt/make-tree splitter
-                     (decision-tree-fit f left)
-                     (decision-tree-fit f right))))))
+  "Fits a decision tree to the given training data."
+  ([model data]
+   (decision-tree-fit model (map butlast data) (map last data)))
+  ([model x y]
+   (->> (if (apply = y)
+          (bt/make-tree (first y))
+          (let [{cost :cost} model
+                splitter (best-splitter cost x y)
+                data  (map #(conj (vec %1) %2) x y)
+                split (group-by splitter data)
+                left  (get split true)
+                right (get split false)]
+            (bt/make-tree splitter
+                          (:parameters (decision-tree-fit model left))
+                          (:parameters (decision-tree-fit model right)))))
+        (assoc model :parameters))))
+
+(defn decision-tree-predict
+  "Predicts the values of example data using a decision tree."
+  [model x]
+  (let [{tree :parameters} model]
+    (when (not (nil? tree))
+      (letfn [(predict [t xi]
+                       (let [val (bt/get-value t)]
+                         (cond (bt/leaf? t) val
+                               (val xi) (predict (bt/get-left t) xi)
+                               :else    (predict (bt/get-right t) xi))))]
+        (map #(predict tree %) x)))))
+
+(defn print-decision-tree
+  "Prints information about a given decision tree."
+  [model]
+  (println (dissoc model :parameters))
+  (when (contains? model :parameters)
+    (bt/print-tree (:parameters model))))
+
+(defn make-decision-tree
+  "Returns a decision tree model using the given cost function."
+  [cost]
+  {:cost cost})
