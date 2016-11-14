@@ -11,6 +11,14 @@
   [a]
   (sqrt (dot-product a a)))
 
+(defn mean
+  [coll]
+  (/ (reduce + coll) (count coll)))
+
+(defn mode
+  [coll]
+  (first (apply max-key second (frequencies coll))))
+
 (defn sigmoid
   [z]
   (/ 1 (+ 1 (expt Math/E (- z)))))

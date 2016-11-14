@@ -54,6 +54,19 @@ Add the following dependency to your project:
 
 ### Decision Tree
 
+```clojure
+(ns example
+  (:require [lambda-ml.decision-tree :refer :all]
+            [lambda-ml.metrics :refer :all]))
+
+(def data [[0 0 0] [0 1 1] [1 0 1] [1 1 0]])
+(def model (make-classification-tree gini-impurity))
+(def fit (decision-tree-fit model data))
+
+(decision-tree-predict fit (map butlast data))
+;;=> (0 1 1 0)
+```
+
 ### K-means
 
 ```clojure

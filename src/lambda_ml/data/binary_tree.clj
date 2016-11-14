@@ -35,10 +35,23 @@
   ([tree]
    (print-tree tree 0))
   ([tree level]
-   (println (apply str (repeat level "\t"))
-            (let [val (get-value tree)]
-              (or (meta val) val)))
+   (println (str (apply str (repeat level "    "))
+                 (let [val (get-value tree)]
+                   (or (meta val) val))))
    (when (not (nil? (get-left tree)))
      (print-tree (get-left tree) (inc level)))
    (when (not (nil? (get-right tree)))
      (print-tree (get-right tree) (inc level)))))
+
+(defn adjacency-matrix
+  "Returns an adjacency matrix representation of a binary tree."
+  ([tree]
+   (adjacency-matrix tree {}))
+  ([tree matrix]
+   (let [left   (get-left tree)
+         matrix (if (nil? left) matrix (adjacency-matrix left matrix))
+         edges  (if (nil? left) [] [(dec (count matrix))])
+         right  (get-right tree)
+         matrix (if (nil? right) matrix (adjacency-matrix right matrix))
+         edges  (if (nil? right) edges (conj edges (dec (count matrix))))]
+     (assoc matrix (count matrix) {:edges edges :value (get-value tree)}))))

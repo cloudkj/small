@@ -16,15 +16,6 @@
                [x1 y1]
                (rest points))))))
 
-(defn gini-impurity
-  "Returns the Gini impurity of a seq of labels."
-  [labels]
-  (let [total (count labels)]
-    (->> (vals (frequencies labels))
-         (map #(/ % total))
-         (map #(* % (- 1 %)))
-         (reduce +))))
-
 (defn roc-curve
   "Returns a sequence of [false positive rate, true positive rate] tuples that
   represent the ROC curve of a classifier."
