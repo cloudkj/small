@@ -93,16 +93,19 @@
 (defn best-splitter
   "Returns the splitter for the given data that minimizes a weighted cost
   function f, or returns nil if no splitter exists."
-  [f x y]
+  [f min-leaf x y]
   (->> (for [i (range (count (first x)))]
          ;; Find best splitter for feature i
          (let [s (map (fn [splitter]
                         (let [data (map #(conj (vec %1) %2) x y)
-                              [left right] (vals (group-by splitter data))
-                              cost (f (map last left) (map last right))
-                              ;; Add metadata to splitter
-                              splitter (vary-meta splitter merge {:cost (float cost) :feature i})]
-                          [splitter cost i]))
+                              [left right] (vals (group-by splitter data))]
+                          ;; Either split would have fewer observations than required
+                          (if (or (< (count left) min-leaf) (< (count right) min-leaf))
+                            [nil Double/MAX_VALUE i]
+                            (let [cost (f (map last left) (map last right))
+                                  ;; Add metadata to splitter
+                                  splitter (vary-meta splitter merge {:cost (float cost) :feature i})]
+                              [splitter cost i]))))
                       (splitters x i))]
            (if (empty? s)
              [nil Double/MAX_VALUE i]
@@ -124,12 +127,16 @@
   ([model data]
    (decision-tree-fit model (map butlast data) (map last data)))
   ([model x y]
-   (let [{cost :cost prediction :prediction weighted :weighted} model
+   (let [{cost :cost prediction :prediction weighted :weighted
+          min-split :min-split min-leaf :min-leaf} model
          weighted (fn [left right] (weighted left right cost prediction))]
-     ;; Stopping criteria
-     (->> (if (apply = y)
-            (bt/make-tree (prediction y))
-            (let [splitter (best-splitter weighted x y)]
+     (->> (cond
+            ;; Fewer observations than required to split a node
+            (< (count y) min-split) (bt/make-tree (prediction y))
+            ;; All observed labels are equivalent
+            (apply = y)             (bt/make-tree (prediction y))
+            :else
+            (let [splitter (best-splitter weighted min-leaf x y)]
               (if (nil? splitter)
                 (bt/make-tree (prediction y))
                 (let [data  (map #(conj (vec %1) %2) x y)
@@ -162,10 +169,14 @@
 
 (defn make-classification-tree
   "Returns a classification decision tree model using the given cost function."
-  [cost]
-  {:cost cost :prediction c/mode :weighted classification-weighted-cost})
+  [cost min-split min-leaf]
+  {:cost cost :prediction c/mode :weighted classification-weighted-cost
+   :min-split min-split
+   :min-leaf min-leaf})
 
 (defn make-regression-tree
   "Returns a regression decision tree model using the given cost function."
-  [cost]
-  {:cost cost :prediction c/mean :weighted regression-weighted-cost})
+  [cost min-split min-leaf]
+  {:cost cost :prediction c/mean :weighted regression-weighted-cost
+   :min-split min-split
+   :min-leaf min-leaf})

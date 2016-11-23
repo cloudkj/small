@@ -85,9 +85,9 @@
                ["foo" "bar" "baz"]]
         data2 [[1.0 2.0 3.14]
                [1.0 2.0 2.71]]]
-    (is (nil? (best-splitter (fn [l r] (classification-weighted-cost l r gini-impurity mode))
+    (is (nil? (best-splitter (fn [l r] (classification-weighted-cost l r gini-impurity mode)) 1
                              (map butlast data1) (map last data1))))
-    (is (nil? (best-splitter (fn [l r] (regression-weighted-cost l r mean-squared-error mean))
+    (is (nil? (best-splitter (fn [l r] (regression-weighted-cost l r mean-squared-error mean)) 1
                              (map butlast data2) (map last data2))))))
 
 (deftest test-best-splitter-categorical
@@ -105,7 +105,7 @@
               ["Overcast" "Mild" "High" "Strong" "Yes"]
               ["Overcast" "Hot" "Normal" "Weak" "Yes"]
               ["Rain" "Mild" "High" "Strong" "No"]]
-        splitter (best-splitter (fn [l r] (classification-weighted-cost l r gini-impurity mode))
+        splitter (best-splitter (fn [l r] (classification-weighted-cost l r gini-impurity mode)) 1
                                 (map butlast data) (map last data))
         [left right] (vals (group-by splitter data))]
     (is (or (and (= (count left) 10) (= (count right) 4))
@@ -113,7 +113,7 @@
 
 (deftest test-classification-tree
   (let [data [[0 0 0] [0 1 1] [1 0 1] [1 1 0]]
-        model (make-classification-tree gini-impurity)
+        model (make-classification-tree gini-impurity 2 1)
         fit (decision-tree-fit model data)]
     (is (= (first (decision-tree-predict fit [[0 0]])) 0))
     (is (= (first (decision-tree-predict fit [[0 1]])) 1))
